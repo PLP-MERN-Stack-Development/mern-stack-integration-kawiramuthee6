@@ -1,10 +1,11 @@
-// api.js - API service for making requests to the backend
-
 import axios from 'axios';
 
-// Create axios instance with base URL
+// Debug: Check what URL we're using
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+console.log('🔧 API Base URL:', API_BASE_URL);
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -13,6 +14,9 @@ const api = axios.create({
 // Add request interceptor for authentication
 api.interceptors.request.use(
   (config) => {
+    console.log('🚀 Making request to:', config.url);
+    console.log('📡 Full URL:', config.baseURL + config.url);
+    
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -28,6 +32,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('❌ API Error:', error.response?.status, error.config?.url);
+    
     // Handle authentication errors
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('token');
@@ -82,7 +88,7 @@ export const postService = {
 
   // Search posts
   searchPosts: async (query) => {
-    const response = await api.get(`/posts/search?q=${query}`);
+    const response = await api.get(`/posts?search=${query}`);
     return response.data;
   },
 };
@@ -133,4 +139,4 @@ export const authService = {
   },
 };
 
-export default api; 
+export default api;
